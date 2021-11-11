@@ -6,8 +6,17 @@ from datetime import datetime
 from pandas_datareader import data as pdr
 from pandas.tseries.offsets import BDay
 import yfinance as yf
-yf.pdr_override()
-
+#yf.pdr_override()
+import dash
+from dash import dcc
+from dash import html
+from dash.dependencies import Output, Input
+import plotly.express as px
+import dash_bootstrap_components as dbc
+#from dash_bootstrap_components import themes as dbc
+import plotly.graph_objects as go
+from dash import dash_table
+#from jupyter_dash import JupyterDash
 import webbrowser
 from threading import Timer
 
@@ -20,33 +29,6 @@ def get_now():
     now = datetime.now().strftime('%Y-%m-%d_%Hh%Mm')
     return now
 
-last_file=glob('datatickers123.xlsx')[-1]
-
-#last_file = glob('inputs/transactions_all/transactions*.xlsx')[-1] # path to file in the folder
-print(last_file[-(len(last_file))+(last_file.rfind('/')+1):])
-all_transactions = pd.read_excel(last_file)
-all_transactions.date = pd.to_datetime(all_transactions.date, format='%d/%m/%Y')
-
-all_tickers = list(all_transactions['ticker'].unique())
-# some tickers may have been delisted. need to blacklist them here
-blacklist = ['VSLR', 'HTZ', 'SVA']
-filt_tickers = [tick for tick in all_tickers if tick not in blacklist]
-filt_tickers = [x for x in filt_tickers if str(x) != 'nan']
-print('You traded {} different stocks'.format(len(all_tickers)))
-
-# all transactions without the delisted stocks
-final_filtered = all_transactions[~all_transactions.ticker.isin(blacklist)]
-
-ly = datetime.today().year - 1
-today = datetime.today()
-start_sp = datetime(2019, 1, 1)
-end_sp = today
-start_stocks = datetime(2019, 1, 1)
-end_stocks = today
-start_ytd = datetime(ly, 12, 31) + BDay(1)
-
-
-
 def get(tickers, startdate, enddate):
     def data(ticker):
         print(ticker)
@@ -55,16 +37,65 @@ def get(tickers, startdate, enddate):
     datas = map(data, tickers)
     return (pd.concat(datas, keys=tickers, names=['ticker', 'date']))
 
+#def readTransactionSheetAndFilterData(transactionFile):
 
-all_data = get(filt_tickers, start_stocks, end_stocks)
+last_file=glob('datatickers123.xlsx')[-1] #output109 110
+
+def transactionAndTcikerDates():
+
+    all_transactions = pd.read_excel(last_file)
+    all_transactions.date = pd.to_datetime(all_transactions.date, format='%d/%m/%Y')    #output 45    47   55     78
+    all_tickers = list(all_transactions['ticker'].unique())   #output 50 52
+
+    return all_transactions, all_tickers
+
+all_transactions, all_tickers = transactionAndTcikerDates()
+
+def filterTickets():
+
+    # some tickers may have been delisted. need to blacklist them here
+    blacklist = ['VSLR', 'HTZ', 'SVA']  ## 50 55
+    filt_tickers = [tick for tick in all_tickers if tick not in blacklist]
+    filt_tickers = [x for x in filt_tickers if str(x) != 'nan']   #output65 70 80
+    print('You traded {} different stocks'.format(len(all_tickers)))
+
+    # all transactions without the delisted stocks
+    final_filtered = all_transactions[~all_transactions.ticker.isin(blacklist)] #output356
+    return filt_tickers, final_filtered
+
+filt_tickers, final_filtered = filterTickets()
+
+def getAllData():
+    #ly = datetime.today().year - 1
+    today = datetime.today()
+    #start_sp = datetime(2019, 1, 1)
+    start_stocks = datetime(2019, 1, 1)          #122
+    #           #65
+    end_stocks = today     #65
+    #start_ytd = datetime(ly, 12, 31) + BDay(1)
+
+    all_data = get(filt_tickers, start_stocks, end_stocks)   #67, 71, 73, 81
+    return all_data
+
+all_data = getAllData()
+
+
+    #return all_data, end_sp, final_filtered, filt_tickers, all_transactions, last_file, start_stocks
+
+#start_stocks, all_data, end_sp, final_filtered, filt_tickers, all_transactions, last_file = readTransactionSheetAndFilterData('datatickers123.xlsx')
+
 
 clean_header(all_data)
 
-# saving all stock prices individually to the specified folder
-for tick in filt_tickers:
-    all_data.loc[tick].to_csv('outputs/price_hist/{}_price_hist.csv'.format(tick))
+def saveStockPricesToFolder():
 
-all_data.info()
+    # saving all stock prices individually to the specified folder
+    for tick in filt_tickers:
+        all_data.loc[tick].to_csv('outputs/price_hist/{}_price_hist.csv'.format(tick))
+
+saveStockPricesToFolder()
+
+#all_data.info()
 
 MEGA_DICT = {}  # you have to create it first
 min_date = '2019-01-01'  # optional
@@ -113,6 +144,9 @@ portf_allvalues['portf_value'] = portf_allvalues.sum(axis=1) # summing all marke
 
 
 # For the S&P500 price return
+today = datetime.today()
+end_sp = today
+start_stocks = datetime(2019, 1, 1)
 sp500 = pdr.get_data_yahoo('^GSPC', start_stocks, end_sp)
 clean_header(sp500)
 
@@ -163,21 +197,6 @@ kpi_sp500_7d_pct = (kpi_sp500_7d_abs/portf_allvalues.tail(7).sp500_mktvalue[0]).
 kpi_sp500_15d_pct = (kpi_sp500_15d_abs/portf_allvalues.tail(15).sp500_mktvalue[0]).round(3)*100
 kpi_sp500_30d_pct = (kpi_sp500_30d_abs/portf_allvalues.tail(30).sp500_mktvalue[0]).round(3)*100
 kpi_sp500_200d_pct = (kpi_sp500_200d_abs/portf_allvalues.tail(200).sp500_mktvalue[0]).round(3)*100
-
-import dash
-from dash import dcc
-from dash import html
-from dash.dependencies import Output, Input
-import plotly.express as px
-
-import dash_bootstrap_components as dbc
-
-#from dash_bootstrap_components import themes as dbc
-
-import plotly.graph_objects as go
-from dash import dash_table
-#from jupyter_dash import JupyterDash
-
 
 
 initial_date = '2019-01-01'  # do not use anything earlier than your first trade
