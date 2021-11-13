@@ -97,34 +97,38 @@ saveStockPricesToFolder()
 
 #all_data.info()
 
-MEGA_DICT = {}  # you have to create it first
-min_date = '2019-01-01'  # optional
-TX_COLUMNS = ['date','ticker', 'cashflow', 'cml_units', 'cml_cost', 'gain_loss']
-tx_filt = all_transactions[TX_COLUMNS]  # keeping just the most relevant ones for now
+def createTcikersAndPricesDictionary():
+    MEGA_DICT = {}  # you have to create it first
+    min_date = '2019-01-01'  # optional
+    TX_COLUMNS = ['date', 'ticker', 'cashflow', 'cml_units', 'cml_cost', 'gain_loss']
+    tx_filt = all_transactions[TX_COLUMNS]  # keeping just the most relevant ones for now
 
-for ticker in filt_tickers:
-    prices_df = all_data[all_data.index.get_level_values('ticker').isin([ticker])].reset_index()
-    ## Can add more columns like volume!
-    PX_COLS = ['date', 'adj_close']
-    prices_df = prices_df[prices_df.date >= min_date][PX_COLS].set_index(['date'])
-    # Making sure we get sameday transactions
-    tx_df = tx_filt[tx_filt.ticker==ticker].groupby('date').agg({'cashflow': 'sum',
-                                                                 'cml_units': 'last',
-                                                                 'cml_cost': 'last',
-                                                                 'gain_loss': 'sum'})
-    # Merging price history and transactions dataframe
-    tx_and_prices = pd.merge(prices_df, tx_df, how='outer', left_index=True, right_index=True).fillna(0)
-    # This is to fill the days that were not in our transaction dataframe
-    tx_and_prices['cml_units'] = tx_and_prices['cml_units'].replace(to_replace=0, method='ffill')
-    tx_and_prices['cml_cost'] = tx_and_prices['cml_cost'].replace(to_replace=0, method='ffill')
-    tx_and_prices['gain_loss'] = tx_and_prices['gain_loss'].replace(to_replace=0, method='ffill')
-    # Cumulative sum for the cashflow
-    tx_and_prices['cashflow'] = tx_and_prices['cashflow'].cumsum()
-    tx_and_prices['avg_price'] = (tx_and_prices['cml_cost']/tx_and_prices['cml_units'])
-    tx_and_prices['mktvalue'] = (tx_and_prices['cml_units']*tx_and_prices['adj_close'])
-    tx_and_prices = tx_and_prices.add_prefix(ticker+'_')
-    # Once we're happy with the dataframe, add it to the dictionary
-    MEGA_DICT[ticker] = tx_and_prices.round(3)
+    for ticker in filt_tickers:
+        prices_df = all_data[all_data.index.get_level_values('ticker').isin([ticker])].reset_index()
+        ## Can add more columns like volume!
+        PX_COLS = ['date', 'adj_close']
+        prices_df = prices_df[prices_df.date >= min_date][PX_COLS].set_index(['date'])
+        # Making sure we get sameday transactions
+        tx_df = tx_filt[tx_filt.ticker == ticker].groupby('date').agg({'cashflow': 'sum',
+                                                                       'cml_units': 'last',
+                                                                       'cml_cost': 'last',
+                                                                       'gain_loss': 'sum'})
+        # Merging price history and transactions dataframe
+        tx_and_prices = pd.merge(prices_df, tx_df, how='outer', left_index=True, right_index=True).fillna(0)
+        # This is to fill the days that were not in our transaction dataframe
+        tx_and_prices['cml_units'] = tx_and_prices['cml_units'].replace(to_replace=0, method='ffill')
+        tx_and_prices['cml_cost'] = tx_and_prices['cml_cost'].replace(to_replace=0, method='ffill')
+        tx_and_prices['gain_loss'] = tx_and_prices['gain_loss'].replace(to_replace=0, method='ffill')
+        # Cumulative sum for the cashflow
+        tx_and_prices['cashflow'] = tx_and_prices['cashflow'].cumsum()
+        tx_and_prices['avg_price'] = (tx_and_prices['cml_cost'] / tx_and_prices['cml_units'])
+        tx_and_prices['mktvalue'] = (tx_and_prices['cml_units'] * tx_and_prices['adj_close'])
+        tx_and_prices = tx_and_prices.add_prefix(ticker + '_')
+        # Once we're happy with the dataframe, add it to the dictionary
+        MEGA_DICT[ticker] = tx_and_prices.round(3)
+        return MEGA_DICT
+
+MEGA_DICT = createTcikersAndPricesDictionary()
 
 MEGA_DF = pd.concat(MEGA_DICT.values(), axis=1)
 MEGA_DF.to_csv('outputs/mega/MEGA_DF_{}.csv'.format(get_now()))  # optional
@@ -170,7 +174,7 @@ print(difference)
 
 def add_one(x):
 
-	return x * difference
+    return x * difference
 
 
 portf_allvalues['sp500_mktvalue'] = portf_allvalues['sp500_mktvalue'].apply(add_one)
@@ -498,15 +502,29 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
+
 content = html.Div(id='page-content', children=child, style=CONTENT_STYLE)
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SPACELAB])
 # app = JupyterDash(__name__)
-app.layout = html.Div([
-    dcc.Location(id='url'),
-    sidebar,
-    content
-])
+app.layout = html.Div([dcc.Location(id='url'), sidebar, content])
+
+@app.callback(Output("page-content", "children"),
+              [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        return child
+    elif pathname == "/page-1":
+        return dcc.Graph(id='chrt-portfolio-main',
+                          figure=chart_ptfvalue,
+                          style={'height': 550})
+    elif pathname == "/page-2":
+        return html.P("Oh cool, this is page 2!")
+    elif pathname == "/page-3":
+        return child
+    # If the user tries to reach a different page, return a 404 message
+
+
 
 port = 5000 # or simply open on the default `8050` port
 
