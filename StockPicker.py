@@ -87,9 +87,15 @@ def winningAndLoosingStocks(df, dataOld):
     winners = 0
     loosers = 0
     for entry in listWithIndex:
-        print(dataOld.iloc[entry, [184]])
-        stock = dataOld.iloc[entry, [184]]
-        if stock['class80'] == 1:
+        #print(len(dataOld.columns))
+        #print(dataOld.iloc[entry, len(dataOld.columns)-1])
+        stock = dataOld.iloc[entry, len(dataOld.columns)-1]
+        #print(classificationCriterium)
+
+        #print('printer stock')
+        #print(stock)
+        #if stock['class20'] == 1:
+        if stock == 1:
             winners = winners + 1
         else:
             loosers = loosers + 1
@@ -101,14 +107,14 @@ def printOutWinnersAndLoosers(winners, loosers, listWithIndex, dataOld):
     print('number of stocks:')
     print(len(listWithIndex))
     print('stock names:')
-    winnerStockDataFrame = pd.DataFrame(dataOld.iloc[listWithIndex, [0, 184]])
+    winnerStockDataFrame = pd.DataFrame(dataOld.iloc[listWithIndex, [0, len(dataOld.columns)-1]])
     print(winnerStockDataFrame)
     winnerStockDataFrame = winnerStockDataFrame.rename(columns={'Unnamed: 0': 'tickers'})
     winnerStockDataFrame.to_excel('stockWinnersFromAIStockPicker.xlsx')
-    print(dataOld.iloc[listWithIndex, [0, 184]])
+    print(dataOld.iloc[listWithIndex, [0, len(dataOld.columns)-1]])
 
-def pickOutWinnersBasedOnProbabilityFromClassifier(probability, Chosenclassifier, Xvalue):
-    dataOld = pd.read_csv("SelfMadeStockDataset.csv")
+def pickOutWinnersBasedOnProbabilityFromClassifier(probability, Chosenclassifier, Xvalue, data):
+    dataOld = data # pd.read_csv("SelfMadeStockDataset.csv")
     probabilities = Chosenclassifier.predict_proba(Xvalue)
     df = pd.DataFrame(probabilities, columns=['Column_A', 'Column_B'])
     df = df.loc[(df['Column_B'] >= probability)]
@@ -132,7 +138,7 @@ def trainClassifierAndPickOutBestStocks(probability, Xval, yval, data):
     X, selectedStocksAttributes = prepareData(Xval, data, yval)
     X_train, X_test, y_train, y_test, classifier = trainClassifier(X, yval)
     Y_pred = classifier.predict(X_test)
-    pickOutWinnersBasedOnProbabilityFromClassifier(probability, classifier, X)
+    pickOutWinnersBasedOnProbabilityFromClassifier(probability, classifier, X, data)
     printClassifierScores(classifier, X, y, y_test, Y_pred)
 
     print("printer ut X etter")
@@ -164,26 +170,32 @@ def trainClassifierAndPickOutBestStocks(probability, Xval, yval, data):
 
 data = pd.read_csv("SelfMadeStockDataset.csv")
 
-print('printer data lengden')
-print(len(data))
 #print(data.iloc[:, 223:224])
 
 data = data.drop('class10', 1)
-data = data.drop('class40', 1)
+data = data.drop('class20', 1)
 data = data.drop('class80', 1)
 
-print('printer data lengden')
-print(len(data))
-print(data)
+print('printer column lengden')
+print(len(data.columns))
 
 test = data.iloc[:, 181:184]
+print('test')
 print(test)
 
-y = data['class20']
+classificationCriterium = 'class40'
 X = data.iloc[:, 1:181]
 
+y = data[classificationCriterium]
+X = data.iloc[:, 1:len(data.columns)-1]
 
-trainClassifierAndPickOutBestStocks(0.80, X, y, data)
+print('printer X')
+print(X)
+
+
+
+
+trainClassifierAndPickOutBestStocks(0.70, X, y, data)
 
 
 
