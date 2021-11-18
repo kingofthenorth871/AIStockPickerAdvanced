@@ -59,6 +59,24 @@ def find_in_json(obj, key):
     results = extract(obj, arr, key)
     return results
 
+def get_price_var(symbol):
+    '''
+    Get historical price data for a given symbol leveraging the power of pandas_datareader and Yahoo.
+    Compute the difference between first and last available time-steps in terms of Adjusted Close price..
+    Input: ticker symbol
+    Output: price variation
+    '''
+    # read data
+    prices = data.DataReader(symbol, 'yahoo', '2019-01-01', '2019-12-31')['Adj Close']
+
+    # get all timestamps for specific lookups
+    today = prices.index[-1]
+    start = prices.index[0]
+
+    # calculate percentage price variation
+    price_var = ((prices[today] - prices[start]) / prices[start]) * 100
+    return price_var
+
 #url = 'https://financialmodelingprep.com/api/v3/company/stock/list'
 
 url = 'https://financialmodelingprep.com/api/v3/stock/list?apikey=c247ca711e240e8c07bce1aa1549214d'
@@ -73,7 +91,7 @@ available_tickers2 = find_in_json(ticks_json, 'symbol')
 
 available_tickers = []
 i=0
-while i<3000:
+while i<20:
     #print(i)
     available_tickers.append(available_tickers2[i])
     i=i+1
@@ -122,18 +140,32 @@ for tick in tqdm(available_tickers):
     except:
         print("An exception occurred")
 
+#print('printer ut tickers_sector')
+#tickers_sector = tickers_sector
+#print(tickers_sector)
+tickerSectorClean = []
+for sectorEntry in tickers_sector:
+    tickerSectorClean.append(sectorEntry[0])
+
+
+print('printer ut tickers_sectorClean')
+print(tickerSectorClean)
+
 S = pd.DataFrame(tickers_sector, index=available_tickers, columns=['Sector'])
 
-print('sectors')
+print('printer sectors')
 print(S)
 
 # Get list of tickers from TECHNOLOGY sector
 #tickers_tech = S[S['Sector'] == 'Technology'].index.values.tolist()
-tickers_tech = S['Sector'].index.values.tolist()
+tickers_tech = S.index.values.tolist()
 
-pvar_list, tickers_found = [], []
+print('printer iloc:')
+print(S.loc['KMI'])
+
+pvar_list, tickers_found, tickerSector = [], [], []
 #num_tickers_desired = 1000
-num_tickers_desired = 8000
+num_tickers_desired = 20
 count = 0
 tot = 0
 TICKERS = tickers_tech
@@ -144,6 +176,7 @@ for ticker in TICKERS:
         pvar = get_price_var(ticker)
         pvar_list.append(pvar)
         tickers_found.append(ticker)
+        #tickerSector.append(S.loc[ticker])
         count += 1
     except:
         pass
@@ -154,9 +187,19 @@ for ticker in TICKERS:
     if count == num_tickers_desired: # if there are more than 1000 tickers in sectors, stop
         break
 
-# Store everything in a dataframe
-D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2019 PRICE VAR [%]'])
 
-# Initialize lists and dataframe (dataframe is a 2D numpy array filled with 0s)
-missing_tickers, missing_index = [], []
-d = np.zeros((len(tickers_found), len(indicators)))
+
+# Store everything in a dataframe
+#D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2019 PRICE VAR [%]'])
+
+pvardf = pd.DataFrame(pvar_list)
+pvardf.to_csv('pvarFromTicketBuilder.csv')
+
+tickers_founddf = pd.DataFrame(tickers_found)
+tickers_founddf.to_csv('tickers_foundFromTicketBuilder.csv')
+
+tickerSectordf = pd.DataFrame(tickerSectorClean)
+tickerSectordf.to_csv('tickerSectorFromTicketBuilder.csv')
+
+#print('printer ut dfen')
+#print(tickerSectordf['Sector'])
