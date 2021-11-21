@@ -124,39 +124,10 @@ D2 = D.loc[DATA.index.values, :]
 y = []
 for i, _ in enumerate(D2.index.values):
     # print(D2.values[i])
-    if D2.values[i] >= 10:
-        y.append(1)
-    else:
-        y.append(0)
+    y.append(D2.values[i])
 
-y2 = []
-for i, _ in enumerate(D2.index.values):
-    # print(D2.values[i])
-    if D2.values[i] >= 20:
-        y2.append(1)
-    else:
-        y2.append(0)
-
-y3 = []
-for i, _ in enumerate(D2.index.values):
-    # print(D2.values[i])
-    if D2.values[i] >= 40:
-        y3.append(1)
-    else:
-        y3.append(0)
-
-y4 = []
-for i, _ in enumerate(D2.index.values):
-    # print(D2.values[i])
-    if D2.values[i] >= 80:
-        y4.append(1)
-    else:
-        y4.append(0)
 
 # Add array to dataframe
-DATA['class10'] = y
-DATA['class20'] = y2
-DATA['class40'] = y3
-DATA['class80'] = y4
+DATA['priceVar1yr'] = y
 
 DATA.to_csv('SelfMadeStockDataset.csv')

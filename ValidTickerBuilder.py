@@ -91,7 +91,7 @@ available_tickers2 = find_in_json(ticks_json, 'symbol')
 
 available_tickers = []
 i=0
-while i<20:
+while i<len(available_tickers2):
     #print(i)
     available_tickers.append(available_tickers2[i])
     i=i+1
@@ -165,7 +165,7 @@ print(S.loc['KMI'])
 
 pvar_list, tickers_found, tickerSector = [], [], []
 #num_tickers_desired = 1000
-num_tickers_desired = 20
+num_tickers_desired = 50000
 count = 0
 tot = 0
 TICKERS = tickers_tech

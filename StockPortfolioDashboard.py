@@ -271,7 +271,7 @@ df = plotlydf_portfval[['date', 'ptf_growth', 'sp500_growth']].copy().round(3)
 df['month'] = df.date.dt.month_name()  # date column should be formatted as datetime
 df['weekday'] = df.date.dt.day_name()  # could be interesting to analyze weekday returns later
 df['year'] = df.date.dt.year
-df['weeknumber'] = df.date.dt.week    # could be interesting to try instead of timeperiod
+df['weeknumber'] = df.date.dt.isocalendar().week    # could be interesting to try instead of timeperiod
 df['timeperiod'] = df.year.astype(str) + ' - ' + df.date.dt.month.astype(str).str.zfill(2)
 df.head(5)
 
