@@ -1,5 +1,6 @@
 import requests
 import json
+import pandas as pd
 
 #c247ca711e240e8c07bce1aa1549214d
 
@@ -26,11 +27,26 @@ api_url = "https://financialmodelingprep.com/api/v4/financial-reports-json?symbo
 
 api_url = 'https://financialmodelingprep.com/api/v3/financials/income-statement/BSP.OL?&apikey=c247ca711e240e8c07bce1aa1549214d'
 
-response = requests.get(api_url)
+#response = requests.get(api_url)
 
-myJson = response.json()
+#myJson = response.json()
 
-with open('data.txt', 'w') as outfile:
-    json.dump(myJson, outfile)
+#with open('data.txt', 'w') as outfile:
+   # json.dump(myJson, outfile)
 
-print(myJson)
+#print(myJson)
+
+
+#dcc.Dropdown("dropdown_tickers", options=[
+#            {"label": "Apple", "value": "AAPL"},
+#            {"label": "Tesla", "value": "TSLA"},
+#            {"label": "Facebook", "value": "FB"},
+#        ]
+
+
+tickers = pd.read_excel('stockWinnersFromAIStockPicker.xlsx')
+tickers = tickers['tickers'].values.tolist()
+tickersForOptionsTable = []
+
+for ticker in tickers:
+    tickersForOptionsTable.append({"label": ticker, "value": ticker})
