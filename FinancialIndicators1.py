@@ -101,6 +101,8 @@ pickleList = []
 
 for t, _ in enumerate(tqdm(tickers_found)):
     try:
+        print('printer tickeren: ')
+        print(tickers_found[t])
         # Scrape indicators from financialmodelingprep API
         url0 = 'https://financialmodelingprep.com/api/v3/financials/income-statement/' + tickers_found[t] + accessCode
         url1 = 'https://financialmodelingprep.com/api/v3/financials/balance-sheet-statement/' + tickers_found[t] + accessCode

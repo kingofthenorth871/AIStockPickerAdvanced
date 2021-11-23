@@ -1,3 +1,4 @@
+import os
 import pickle
 
 from sys import stdout
@@ -40,10 +41,58 @@ def find_in_json(obj, key):
     results = extract(obj, arr, key)
     return results
 
+A2=[]
+
+#for filename in os.listdir('FinancialIndicatorsMiddleSave'):
+    #print(filename)
+infile = open('FinancialIndicatorsMiddleSave'+'/'+'pickleList1', 'rb')
+A11 = pickle.load(infile)
+print(len(A11))
+infile = open('FinancialIndicatorsMiddleSave'+'/'+'pickleList2', 'rb')
+A12 = pickle.load(infile)
+print(len(A12))
+infile = open('FinancialIndicatorsMiddleSave'+'/'+'pickleList3', 'rb')
+A13 = pickle.load(infile)
+print(len(A13))
+infile = open('FinancialIndicatorsMiddleSave'+'/'+'pickleList4', 'rb')
+A14 = pickle.load(infile)
+print(len(A14))
+infile = open('FinancialIndicatorsMiddleSave'+'/'+'pickleList5', 'rb')
+A15 = pickle.load(infile)
+print(len(A15))
+infile.close()
+
+
+A2 = A11+A12+A13+A14+A15
+
+Az = A2
+
+#A2 = A2+A12
+
+#A2 = A2+A13
+
+#A2 = A2+A14
+
+#A2 = A2+A15
+
+print('printer A2')
+print(len(A2))
+
 filename = 'pickleList'
 infile = open(filename,'rb')
 A2 = pickle.load(infile)
 infile.close()
+
+if A2 == Az:
+    print ("The lists are identical")
+else :
+    print ("The lists are not identical")
+
+print('printer A2')
+print(len(A2))
+
+#A2 = ([A2.extend(f) for f in A3])
+
 
 
 missing_tickers, missing_index = [], []
@@ -61,7 +110,7 @@ tickers_found = pd.read_csv('tickers_foundFromTicketBuilder.csv')
 print('printer dataframen')
 print(tickers_found)
 tickers_found = tickers_found['0'].tolist()
-print('printer dataframen etter konverteringen')
+print('printer tickers found')
 print(tickers_found)
 
 a_file = open("indicators.txt")
