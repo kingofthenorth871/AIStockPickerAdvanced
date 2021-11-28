@@ -170,32 +170,76 @@ def trainClassifierAndPickOutBestStocks(probability, Xval, yval, data):
 
 data = pd.read_csv("SelfMadeStockDataset.csv")
 
-#print(data.iloc[:, 223:224])
-
-data = data.drop('class10', 1)
-data = data.drop('class20', 1)
-data = data.drop('class80', 1)
-
 print('printer column lengden')
 print(len(data.columns))
+print(len(data))
 
-test = data.iloc[:, 181:184]
-print('test')
-print(test)
+mod_data = data.dropna(thresh=45)
+mod_data['priceVar1yr'] = mod_data['priceVar1yr'].map(lambda x: x.lstrip('[').rstrip(']'))
+mod_data['priceVar1yr'] = mod_data['priceVar1yr'].astype(float).round(0)
+mod_data['priceVar1yr'] = mod_data['priceVar1yr'].astype(int)
 
-classificationCriterium = 'class40'
-X = data.iloc[:, 1:181]
 
-y = data[classificationCriterium]
-X = data.iloc[:, 1:len(data.columns)-1]
+
+
+mod_data.drop('date', 1)
+mod_data.drop('priceVar1yr',1)
+mod_data.drop('Unnamed: 0', 1)
+print('mod_dataLength')
+print(len(mod_data))
+mod_data = mod_data.fillna(mod_data.mean())
+mod_data=mod_data.round(2)
+
+mod_data.to_csv('SelfMadeStockDatasetCleanedInStockPicker.csv')
+
+# Remove columns that have more than 20 0-values
+mod_data = mod_data.loc[:, mod_data.isin([0]).sum() <= 2500]
+
+# Remove columns that have more than 15 nan-values
+mod_data = mod_data.loc[:, mod_data.isna().sum() <= 2500]
+
+# Fill remaining nan-values with column mean value
+mod_data.iloc[:, 2:225] = mod_data.iloc[:, 2:225].apply(lambda x: x.fillna(x.mean()))
+
+conditions = [
+    mod_data['priceVar1yr'] > -40 , mod_data['priceVar1yr'] < -40
+]
+
+choices = [1,0]
+mod_data['class'] = np.select(conditions, choices, default=0)
+
+print(mod_data)
+#mod_data = mod_data.reset_index()
+
+
+classificationCriterium = 'class'
+X = mod_data.iloc[:, 2:223]
+
+#mod_data.drop('index', axis=1, inplace=True)
+
+#mod_data.drop('Unnamed', axis=1, inplace=True)
+
+
+y = mod_data[classificationCriterium]
+X = mod_data.iloc[:, 2:len(mod_data.columns)-1]
 
 print('printer X')
 print(X)
 
+print('printer Y')
+print(y)
 
 
 
-trainClassifierAndPickOutBestStocks(0.70, X, y, data)
+
+
+#print('printer X')
+#print(X)
+
+
+
+
+trainClassifierAndPickOutBestStocks(0.95, X, y, mod_data)
 
 
 

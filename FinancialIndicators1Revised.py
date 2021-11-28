@@ -99,7 +99,7 @@ d = np.zeros((len(tickers_found), len(indicators)))
 
 our_list = tickers_found
 chunked_list = list()
-chunk_size = 70
+chunk_size = 6000
 for i in range(0, len(our_list), chunk_size):
     chunked_list.append(our_list[i:i+chunk_size])
 
@@ -107,16 +107,13 @@ for i in range(0, len(our_list), chunk_size):
 #print(len(chunked_list))
 #print(chunked_list[5])
 
+missedList = []
 
 i = 0
 while i < len(chunked_list):
     pickleList = []
-    print('printer i')
-    print(i)
     for t, _ in enumerate(tqdm(chunked_list[i])):
         try:
-            print('printer tickeren: ')
-            print(chunked_list[i][t])
             # Scrape indicators from financialmodelingprep API
             url0 = 'https://financialmodelingprep.com/api/v3/financials/income-statement/' + chunked_list[i][t] + accessCode
             url1 = 'https://financialmodelingprep.com/api/v3/financials/balance-sheet-statement/' + chunked_list[i][t] + accessCode
@@ -143,9 +140,16 @@ while i < len(chunked_list):
 
         except:
             print("An exception occurred")
+            print('failed for ticker:')
+            print(chunked_list[i][t])
+            print('adding to missed list')
+            missedList.append(chunked_list[i][t])
 
     i=i+1
     filename = '\pickleList'+str(i)
     outfile = open('FinancialIndicatorsMiddleSave'+filename,'wb')
     pickle.dump(pickleList,outfile)
     outfile.close()
+
+FinancialIndicatorsFailedTickers = pd.DataFrame(missedList)
+FinancialIndicatorsFailedTickers.to_csv('FinancialIndicatorsFailedTickers.csv')

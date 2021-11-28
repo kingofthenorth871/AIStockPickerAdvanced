@@ -29,6 +29,7 @@ import pandas as pd
 from dash.exceptions import PreventUpdate
 import dash_table
 import plotly.express as px
+import logging, sys
 
 # simple function to make headers nicer
 def clean_header(df):
@@ -50,12 +51,23 @@ def get(tickers, startdate, enddate):
 #def readTransactionSheetAndFilterData(transactionFile):
 
 last_file=glob('datatickers123.xlsx')[-1] #output109 110
+#last_file=glob('transactions_finaldf_2021-05-15_12h19m_repo.xlsx')[-1] #output109 110
 
 def transactionAndTcikerDates():
 
     all_transactions = pd.read_excel(last_file)
     all_transactions.date = pd.to_datetime(all_transactions.date, format='%d/%m/%Y')    #output 45    47   55     78
+    all_transactions.drop('Unnamed: 0', 1)
+    #print('all_transactions.date')
+    #print(all_transactions.date)
+
     all_tickers = list(all_transactions['ticker'].unique())   #output 50 52
+
+    #print('all_tickers')
+    #print(all_tickers)
+
+    #print('all_transactions')
+    #print(all_transactions)
 
     return all_transactions, all_tickers
 
@@ -67,6 +79,8 @@ def filterTickets():
     blacklist = ['VSLR', 'HTZ', 'SVA']  ## 50 55
     filt_tickers = [tick for tick in all_tickers if tick not in blacklist]
     filt_tickers = [x for x in filt_tickers if str(x) != 'nan']   #output65 70 80
+
+
     print('You traded {} different stocks'.format(len(all_tickers)))
 
     # all transactions without the delisted stocks
@@ -89,6 +103,9 @@ def getAllData():
 
 all_data = getAllData()
 
+#print("all_data")
+#print(all_data)
+
 
     #return all_data, end_sp, final_filtered, filt_tickers, all_transactions, last_file, start_stocks
 
@@ -109,12 +126,22 @@ saveStockPricesToFolder()
 
 def createTcikersAndPricesDictionary():
     MEGA_DICT = {}  # you have to create it first
-    min_date = '2019-01-01'  # optional
+    min_date = '2018-01-01'  # optional
     TX_COLUMNS = ['date', 'ticker', 'cashflow', 'cml_units', 'cml_cost', 'gain_loss']
     tx_filt = all_transactions[TX_COLUMNS]  # keeping just the most relevant ones for now
 
+
+
+    #filt_tickers = list(filt_tickers)
+
+
+
     for ticker in filt_tickers:
         prices_df = all_data[all_data.index.get_level_values('ticker').isin([ticker])].reset_index()
+
+        print('prices_df')
+        print(prices_df)
+
         ## Can add more columns like volume!
         PX_COLS = ['date', 'adj_close']
         prices_df = prices_df[prices_df.date >= min_date][PX_COLS].set_index(['date'])
@@ -136,7 +163,42 @@ def createTcikersAndPricesDictionary():
         tx_and_prices = tx_and_prices.add_prefix(ticker + '_')
         # Once we're happy with the dataframe, add it to the dictionary
         MEGA_DICT[ticker] = tx_and_prices.round(3)
-        return MEGA_DICT
+    return MEGA_DICT
+
+    #filt_tickersNumbers=0
+   # while len(filt_tickers)>filt_tickersNumbers:
+    #    prices_df = all_data[all_data.index.get_level_values('ticker').isin([filt_tickers[filt_tickersNumbers]])].reset_index()
+
+    #    print('prices_df')
+   #     print(prices_df)
+
+        ## Can add more columns like volume!
+    #    PX_COLS = ['date', 'adj_close']
+    #    prices_df = prices_df[prices_df.date >= min_date][PX_COLS].set_index(['date'])
+        # Making sure we get sameday transactions
+   #     tx_df = tx_filt[tx_filt.ticker == filt_tickers[filt_tickersNumbers]].groupby('date').agg({'cashflow': 'sum',
+     #                                                                  'cml_units': 'last',
+      #                                                                 'cml_cost': 'last',
+      #                                                                 'gain_loss': 'sum'})
+        # Merging price history and transactions dataframe
+     #   tx_and_prices = pd.merge(prices_df, tx_df, how='outer', left_index=True, right_index=True).fillna(0)
+        # This is to fill the days that were not in our transaction dataframe
+     #   tx_and_prices['cml_units'] = tx_and_prices['cml_units'].replace(to_replace=0, method='ffill')
+     #   tx_and_prices['cml_cost'] = tx_and_prices['cml_cost'].replace(to_replace=0, method='ffill')
+    #    tx_and_prices['gain_loss'] = tx_and_prices['gain_loss'].replace(to_replace=0, method='ffill')
+        # Cumulative sum for the cashflow
+     #   tx_and_prices['cashflow'] = tx_and_prices['cashflow'].cumsum()
+    #    tx_and_prices['avg_price'] = (tx_and_prices['cml_cost'] / tx_and_prices['cml_units'])
+     #   tx_and_prices['mktvalue'] = (tx_and_prices['cml_units'] * tx_and_prices['adj_close'])
+     #   tx_and_prices = tx_and_prices.add_prefix(filt_tickers[filt_tickersNumbers] + '_')
+        # Once we're happy with the dataframe, add it to the dictionary
+     #   MEGA_DICT[filt_tickers[filt_tickersNumbers]] = tx_and_prices.round(3)
+     #   filt_tickersNumbers += 1
+   # return MEGA_DICT
+
+
+
+
 
 MEGA_DICT = createTcikersAndPricesDictionary()
 
@@ -152,7 +214,14 @@ MEGA_DF['date'] = pd.to_datetime(MEGA_DF['date'])
 MEGA_DF.set_index('date', inplace=True)
 
 portf_allvalues = MEGA_DF.filter(regex='mktvalue').fillna(0) #  getting just the market value of each ticker
+
+print('printer portf_allvalues')
+print(portf_allvalues)
+
 portf_allvalues['portf_value'] = portf_allvalues.sum(axis=1) # summing all market values
+logging.debug(portf_allvalues)
+
+
 #portf_allvalues['portf_value']
 
 
@@ -529,9 +598,9 @@ def render_page_content(pathname):
                           figure=chart_ptfvalue,
                           style={'height': 550})
     elif pathname == "/page-2":
-        return html.Div(Stocks)
-    elif pathname == "/page-3":
-        return child
+        return Stocks
+    elif pathname == "/page-6":
+        return  html.P('The software starts by building a dataset from the Dataset Builder in the navbar. One step up we have Machine_learning where we calculate a machine learning model that picks out the best stocks from the dataset. in the transaction builder we construct a buy sell strategy for our stocks. In the Stocks section we can research every single stock and see why the machine learning algorithm choose it. The portfolio menu shows us how our chosen set of stocks grow or shrink compared to a stock index.  ')
     # If the user tries to reach a different page, return a 404 message
 
 #nytt innhold!

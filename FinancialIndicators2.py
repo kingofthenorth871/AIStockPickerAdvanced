@@ -65,7 +65,7 @@ infile.close()
 
 A2 = A11+A12+A13+A14+A15
 
-Az = A2
+#Az = A2
 
 #A2 = A2+A12
 
@@ -75,21 +75,21 @@ Az = A2
 
 #A2 = A2+A15
 
-print('printer A2')
-print(len(A2))
+#print('printer A2')
+#print(len(A2))
 
-filename = 'pickleList'
-infile = open(filename,'rb')
-A2 = pickle.load(infile)
-infile.close()
+#filename = 'pickleList'
+#infile = open(filename,'rb')
+#A2 = pickle.load(infile)
+#infile.close()
 
-if A2 == Az:
-    print ("The lists are identical")
-else :
-    print ("The lists are not identical")
+#if A2 == Az:
+    #print ("The lists are identical")
+#else :
+    #print ("The lists are not identical")
 
-print('printer A2')
-print(len(A2))
+#print('printer A2')
+#print(len(A2))
 
 #A2 = ([A2.extend(f) for f in A3])
 
@@ -152,6 +152,7 @@ for A in A2:
             missing_index.append(t)
     #except:
         #print("An exception occurred")
+
 
 actual_tickers = [x for x in tickers_found if x not in missing_tickers]
 d = np.delete(d, missing_index, 0)  # raw dataset
