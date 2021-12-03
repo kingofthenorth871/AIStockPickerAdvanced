@@ -67,7 +67,7 @@ def get_price_var(symbol):
     Output: price variation
     '''
     # read data
-    prices = data.DataReader(symbol, 'yahoo', '2019-01-01', '2019-12-31')['Adj Close']
+    prices = data.DataReader(symbol, 'yahoo', '2020-01-01', '2020-12-31')['Adj Close']
 
     # get all timestamps for specific lookups
     today = prices.index[-1]

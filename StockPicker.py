@@ -52,7 +52,7 @@ def selectBestFeatures(X, y):
     #print('X original')
     #print(Xoriginal)
 
-    m = SelectFromModel(svm.SVC(max_iter=100000, C=30, kernel='linear', probability=True))
+    m = SelectFromModel(svm.SVC(max_iter=100000, C=1, kernel='linear', probability=True))
     m.fit(X, y)
 
     X_selected_df = m.get_support()
@@ -77,7 +77,7 @@ def prepareData(X, data, y):
 
 def trainClassifier(X,y):
     X_train, X_test, y_train, y_test = train_test_split(X, y)
-    classifier = svm.SVC(max_iter=100000, C=30, kernel='linear', probability=True)
+    classifier = svm.SVC(max_iter=100000, C=1, kernel='linear', probability=True)
     # classifier = MLPClassifier(activation='logistic', solver='sgd', hidden_layer_sizes=(10, 10, 10, 5), random_state=1)
     classifier.fit(X_train, y_train)
     return X_train, X_test, y_train, y_test, classifier
@@ -141,6 +141,37 @@ def trainClassifierAndPickOutBestStocks(probability, Xval, yval, data):
     pickOutWinnersBasedOnProbabilityFromClassifier(probability, classifier, X, data)
     printClassifierScores(classifier, X, y, y_test, Y_pred)
 
+
+    ## new dataset on old classifier
+
+    data2019or = pd.read_csv("SelfMadeStockDatasetCleanedInStockPicker2019.csv")
+
+    data2019or = data2019or.drop('Unnamed: 0', 1)
+
+    data2019or = data2019or.rename(columns={'Unnamed: 0.1': 'Unnamed: 0'})
+
+    data2018or = pd.read_csv("SelfMadeStockDatasetCleanedInStockPicker2018.csv")
+
+    #mod_data.drop('index', axis=1, inplace=True)
+
+    #data2019or = data2019or.drop('Dividend Yield',1)
+
+    cols = [c for c in data2019or.columns if c in selectedStocksAttributes]
+
+    data2019cols = data2019or[cols]
+
+    data2019cols = data2019cols.fillna(data2019cols.mean())
+
+    data2019cols = MinMaxScaler().fit_transform(data2019cols)
+
+    print("prediction: ")
+    print(classifier.predict(data2019cols))
+
+    pickOutWinnersBasedOnProbabilityFromClassifier(0.62, classifier, data2019cols, data2019or)
+
+    ## new dataset on old classifier
+
+
     print("printer ut X etter")
     print(X)
 
@@ -168,7 +199,7 @@ def trainClassifierAndPickOutBestStocks(probability, Xval, yval, data):
         print(selectedStocksAttributes[mostImportantNegativeFactors[i]])
         i = i + 1
 
-data = pd.read_csv("SelfMadeStockDataset.csv")
+data = pd.read_csv("SelfMadeStockDataset2018.csv")
 
 print('printer column lengden')
 print(len(data.columns))
@@ -190,7 +221,7 @@ print(len(mod_data))
 mod_data = mod_data.fillna(mod_data.mean())
 mod_data=mod_data.round(2)
 
-mod_data.to_csv('SelfMadeStockDatasetCleanedInStockPicker.csv')
+
 
 # Remove columns that have more than 20 0-values
 mod_data = mod_data.loc[:, mod_data.isin([0]).sum() <= 2500]
@@ -202,7 +233,7 @@ mod_data = mod_data.loc[:, mod_data.isna().sum() <= 2500]
 mod_data.iloc[:, 2:225] = mod_data.iloc[:, 2:225].apply(lambda x: x.fillna(x.mean()))
 
 conditions = [
-    mod_data['priceVar1yr'] > -40 , mod_data['priceVar1yr'] < -40
+    mod_data['priceVar1yr'] > 40 , mod_data['priceVar1yr'] < 40
 ]
 
 choices = [1,0]
@@ -211,6 +242,7 @@ mod_data['class'] = np.select(conditions, choices, default=0)
 print(mod_data)
 #mod_data = mod_data.reset_index()
 
+mod_data.to_csv('SelfMadeStockDatasetCleanedInStockPicker2018.csv')
 
 classificationCriterium = 'class'
 X = mod_data.iloc[:, 2:223]
@@ -221,7 +253,7 @@ X = mod_data.iloc[:, 2:223]
 
 
 y = mod_data[classificationCriterium]
-X = mod_data.iloc[:, 2:len(mod_data.columns)-1]
+X = mod_data.iloc[:, 2:len(mod_data.columns)-2]
 
 print('printer X')
 print(X)
@@ -239,7 +271,7 @@ print(y)
 
 
 
-trainClassifierAndPickOutBestStocks(0.95, X, y, mod_data)
+trainClassifierAndPickOutBestStocks(0.60, X, y, mod_data)
 
 
 

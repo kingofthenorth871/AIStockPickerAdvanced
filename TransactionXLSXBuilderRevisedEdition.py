@@ -128,7 +128,7 @@ def pull_stock_data(tickers):
                 df = df.append(pd.Series(dtype=str), ignore_index=True)
             else:
                 try:
-                    price2019 = yf.download(ticker, '2019-01-01', '2019-01-01')
+                    price2019 = yf.download(ticker, '2020-01-01', '2020-01-01')
                     print('stockPrice')
                     print(price2019['Adj Close'][0])
                     try:
@@ -148,7 +148,7 @@ def pull_stock_data(tickers):
                     USDBudgetPerStock = 5000
 
                     new_row = {
-                        "date": '01/01/2019',
+                        "date": '01/01/2020',
                         "type": 'Buy',
                         "ticker": ticker,
                         "quantity": (math.floor(USDBudgetPerStock/price2019['Adj Close'][0])),
@@ -202,6 +202,7 @@ def main():
     #tickers = ['AAPL', 'GOOGL']
     tickers = pd.read_excel('stockWinnersFromAIStockPicker.xlsx')
     tickers = tickers['tickers'].values.tolist()
+
     #del tickers[6]
     print(tickers)
 

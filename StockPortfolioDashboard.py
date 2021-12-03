@@ -93,7 +93,7 @@ def getAllData():
     #ly = datetime.today().year - 1
     today = datetime.today()
     #start_sp = datetime(2019, 1, 1)
-    start_stocks = datetime(2019, 1, 1)          #122
+    start_stocks = datetime(2020, 1, 1)          #122
     #           #65
     end_stocks = today     #65
     #start_ytd = datetime(ly, 12, 31) + BDay(1)
@@ -229,7 +229,7 @@ logging.debug(portf_allvalues)
 # For the S&P500 price return
 today = datetime.today()
 end_sp = today
-start_stocks = datetime(2019, 1, 1)
+start_stocks = datetime(2020, 1, 1)
 sp500 = pdr.get_data_yahoo('^GSPC', start_stocks, end_sp)
 clean_header(sp500)
 
@@ -282,7 +282,7 @@ kpi_sp500_30d_pct = (kpi_sp500_30d_abs/portf_allvalues.tail(30).sp500_mktvalue[0
 kpi_sp500_200d_pct = (kpi_sp500_200d_abs/portf_allvalues.tail(200).sp500_mktvalue[0]).round(3)*100
 
 
-initial_date = '2019-01-01'  # do not use anything earlier than your first trade
+initial_date = '2020-01-01'  # do not use anything earlier than your first trade
 plotlydf_portfval = portf_allvalues[portf_allvalues.index > initial_date]
 plotlydf_portfval = plotlydf_portfval[['portf_value', 'sp500_mktvalue', 'ptf_value_pctch',
                                      'sp500_pctch', 'ptf_value_diff', 'sp500_diff']].reset_index().round(2)

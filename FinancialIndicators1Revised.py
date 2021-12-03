@@ -91,7 +91,7 @@ tickers_found = tickers_found['0'].tolist()
 
 # Store everything in a dataframe
 #D = pd.DataFrame(pvar_list, tickerSector_list, index=tickers_found, columns=['2019 PRICE VAR [%]', 'sector'])
-D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2019 PRICE VAR [%]'])
+D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2020 PRICE VAR [%]'])
 
 # Initialize lists and dataframe (dataframe is a 2D numpy array filled with 0s)
 missing_tickers, missing_index = [], []

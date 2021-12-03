@@ -118,7 +118,7 @@ file_contents = a_file.read()
 indicators = file_contents.splitlines()
 
 d = np.zeros((len(tickers_found), len(indicators)))
-D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2019 PRICE VAR [%]'])
+D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2020 PRICE VAR [%]'])
 
 
 tickerNumber = 0
@@ -132,11 +132,11 @@ for A in A2:
 
         tickerNumber = tickerNumber + 1
 
-        pd.DataFrame(pvar_list, index=tickers_found, columns=['2019 PRICE VAR [%]'])
+        pd.DataFrame(pvar_list, index=tickers_found, columns=['2020 PRICE VAR [%]'])
         #testAllFinancialData = pd.DataFrame(A)
         #testAllFinancialData.to_csv('testAllFinancialData.csv')
 
-        check = [s for s in all_dates if '2018' in s]  # find all 2018 entries in dates
+        check = [s for s in all_dates if '2019' in s]  # find all 2018 entries in dates
         if len(check) > 0:
             date_index = all_dates.index(check[0])  # get most recent 2018 entries, if more are present
 
