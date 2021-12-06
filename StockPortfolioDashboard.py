@@ -51,6 +51,7 @@ def get(tickers, startdate, enddate):
 #def readTransactionSheetAndFilterData(transactionFile):
 
 last_file=glob('datatickers123.xlsx')[-1] #output109 110
+#last_file=glob('transactionsFinalsTest.xlsx')[-1] #output109 110
 #last_file=glob('transactions_finaldf_2021-05-15_12h19m_repo.xlsx')[-1] #output109 110
 
 def transactionAndTcikerDates():

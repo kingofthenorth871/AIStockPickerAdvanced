@@ -167,7 +167,7 @@ def trainClassifierAndPickOutBestStocks(probability, Xval, yval, data):
     print("prediction: ")
     print(classifier.predict(data2019cols))
 
-    pickOutWinnersBasedOnProbabilityFromClassifier(0.62, classifier, data2019cols, data2019or)
+    pickOutWinnersBasedOnProbabilityFromClassifier(0.60, classifier, data2019cols, data2019or)
 
     ## new dataset on old classifier
 
@@ -233,7 +233,7 @@ mod_data = mod_data.loc[:, mod_data.isna().sum() <= 2500]
 mod_data.iloc[:, 2:225] = mod_data.iloc[:, 2:225].apply(lambda x: x.fillna(x.mean()))
 
 conditions = [
-    mod_data['priceVar1yr'] > 40 , mod_data['priceVar1yr'] < 40
+    mod_data['priceVar1yr'] > 35 , mod_data['priceVar1yr'] < 35
 ]
 
 choices = [1,0]

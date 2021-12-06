@@ -5,6 +5,7 @@ import pandas as pd  # pip install pandas
 from yahoofinancials import YahooFinancials  # pip install yahoofinancials
 import yfinance as yf
 import math
+from datetime import datetime, timedelta
 
 # ==============================
 # Purpose:
@@ -129,8 +130,8 @@ def pull_stock_data(tickers):
             else:
                 try:
                     price2019 = yf.download(ticker, '2020-01-01', '2020-01-01')
-                    print('stockPrice')
-                    print(price2019['Adj Close'][0])
+                    #print('stockPrice')
+                    #print(price2019['Adj Close'][0])
                     try:
                         long_name = data.get_stock_quote_type_data()[ticker]["longName"]
                     except (TypeError, KeyError):
@@ -145,30 +146,129 @@ def pull_stock_data(tickers):
 
                     print(ticker)
 
+                    price2019 = yf.download(ticker, '2020-01-01', '2020-01-01')
                     USDBudgetPerStock = 5000
 
-                    new_row = {
-                        "date": '01/01/2020',
-                        "type": 'Buy',
-                        "ticker": ticker,
-                        "quantity": (math.floor(USDBudgetPerStock/price2019['Adj Close'][0])),
-                        "price": price2019['Adj Close'][0],
-                        "fees": 0,
-                        "transact_val":0,
-                        "last_occurence":0,
-                        "cashflow": -(price2019['Adj Close'][0]*math.floor(USDBudgetPerStock/price2019['Adj Close'][0])),
-                        "prev_units":0,
-                        "cml_units":USDBudgetPerStock/(math.floor(price2019['Adj Close'][0])),
-                        "prev_cost":0,
-                        "cml_cost":(price2019['Adj Close'][0]*math.floor(USDBudgetPerStock/price2019['Adj Close'][0])),
-                        "cost_transact":0,
-                        "cost_unit":0,
-                        "gain_loss":0,
-                        "yield":0,
-                        "avg_price":price2019['Adj Close'][0],
 
-                    }
-                    df = df.append(new_row, ignore_index=True)
+                    now = datetime.now().strftime('%Y-%m-%d')
+                    twentitwentione = datetime(2020, 1, 1)
+                    daysSinceStartTime200 = datetime(2020, 1, 1) - timedelta(days=200)
+                    AllPrices = yf.download(ticker, daysSinceStartTime200, now)
+
+                    DatesToIterateOverAllPrices = AllPrices.loc[twentitwentione:now]
+                    DatesToIterateOverAllPrices = DatesToIterateOverAllPrices.index
+                    DatesToIterateOverAllPrices = DatesToIterateOverAllPrices.tolist()
+
+                    buyOrSell = None
+                    quantityBought=None
+                    gain_loss = None
+                    Yield = None
+                    BoughtPrice = None
+
+
+                    #price = AllPrices.loc[date:date]['Adj Close'][0]
+                    #quantity = math.floor(USDBudgetPerStock / price)
+
+
+                    for date in DatesToIterateOverAllPrices:
+
+                        if(AllPrices.loc[date:date]['Adj Close'][0]==0):
+                            date = date + timedelta(days=1)
+                        if (AllPrices.loc[date:date]['Adj Close'][0] == 0):
+                            date = date + timedelta(days=1)
+
+                        price = AllPrices.loc[date:date]['Adj Close'][0]
+
+
+
+                        if(quantityBought==None):
+                            quantity = math.floor(USDBudgetPerStock / price)
+                        else:
+                            quantity=quantityBought
+
+                        daysSinceStartTime50 = date - timedelta(days=50)
+                        fiftyDayMovingAverage = AllPrices.loc[daysSinceStartTime50:date]
+                        fiftyDayMovingAverage = fiftyDayMovingAverage['Adj Close'].mean()
+                        #print('fifty day moving average: ')
+                        #print(fiftyDayMovingAverage)
+
+                        daysSinceStartTime200 = date - timedelta(days=200)
+                        twoHoundredDayMovingAverage = AllPrices.loc[daysSinceStartTime200:date]
+                        twoHoundredDayMovingAverage = twoHoundredDayMovingAverage['Adj Close'].mean()
+                        #print('two houndred day moving average: ')
+                        #print(twoHoundredDayMovingAverage)
+
+
+                        if (fiftyDayMovingAverage<twoHoundredDayMovingAverage and buyOrSell!='Sell' and buyOrSell!=None):
+                            print('Sell')
+                            buyOrSell = 'Sell'
+
+
+
+                            new_row = {
+                                "date": date,
+                                "type": 'Sell',
+                                "ticker": ticker,
+                                "quantity": quantity,
+                                "price": price,
+                                "fees": 0,
+                                "transact_val": price*quantity,
+                                "last_occurence": 0,
+                                "cashflow": -(AllPrices.loc[date:date]['Adj Close'][0] *
+                                    USDBudgetPerStock / AllPrices.loc[date:date]['Adj Close'][0]),
+                                "prev_units": 0,
+                                "cml_units": USDBudgetPerStock / (AllPrices.loc[date:date]['Adj Close'][0]),
+                                "prev_cost": 0,
+                                "cml_cost": (AllPrices.loc[date:date]['Adj Close'][0] *
+                                    USDBudgetPerStock / AllPrices.loc[date:date]['Adj Close'][0]),
+                                "cost_transact": BoughtPrice*quantity,
+                                "cost_unit": BoughtPrice,
+                                "gain_loss": (price*quantity)-(BoughtPrice*quantity),
+                                "yield":  (price*quantity)/(BoughtPrice*quantity),
+                                "avg_price": AllPrices.loc[date:date]['Adj Close'][0],
+
+                            }
+                            df = df.append(new_row, ignore_index=True)
+
+                        if (fiftyDayMovingAverage>twoHoundredDayMovingAverage and buyOrSell!='Buy'):
+                            print('Buy')
+                            buyOrSell = 'Buy'
+                            quantityBought = quantity
+                            BoughtPrice = price
+
+                            new_row = {
+                                "date": date,
+                                "type": 'Buy',
+                                "ticker": ticker,
+                                "quantity": quantity,
+                                "price": AllPrices.loc[date:date]['Adj Close'][0],
+                                "fees": 0,
+                                "transact_val": price*quantity,
+                                "last_occurence": 0,
+                                "cashflow": -(AllPrices.loc[date:date]['Adj Close'][0] *
+                                    USDBudgetPerStock / AllPrices.loc[date:date]['Adj Close'][0]),
+                                "prev_units": 0,
+                                "cml_units": USDBudgetPerStock / (AllPrices.loc[date:date]['Adj Close'][0]),
+                                "prev_cost": 0,
+                                "cml_cost": (AllPrices.loc[date:date]['Adj Close'][0] *
+                                    USDBudgetPerStock / AllPrices.loc[date:date]['Adj Close'][0]),
+                                "cost_transact": 0,
+                                "cost_unit": 0,
+                                "gain_loss": 0,
+                                "yield": 0,
+                                "avg_price": AllPrices.loc[date:date]['Adj Close'][0],
+
+
+
+                            }
+                            df = df.append(new_row, ignore_index=True)
+                            quantity = quantity
+
+                        #print('datoen:')
+                        #print(date)
+
+
+
                     print(f"Successfully pulled financial data for: {ticker}")
 
                 except Exception as e:
@@ -176,6 +276,8 @@ def pull_stock_data(tickers):
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     print(exc_type, fname, exc_tb.tb_lineno)
+                    print(AllPrices.loc[date:date]['Adj Close'][0])
+                    print(math.floor(AllPrices.loc[date:date]['Adj Close'][0]))
                     # Append Empty Row
                     df = df.append(pd.Series(dtype=str), ignore_index=True)
         return df
