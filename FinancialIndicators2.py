@@ -60,7 +60,7 @@ print(len(A14))
 infile = open('FinancialIndicatorsMiddleSave'+'/'+'pickleList5', 'rb')
 A15 = pickle.load(infile)
 print(len(A15))
-infile.close()
+#infile.close()
 
 
 A2 = A11+A12+A13+A14+A15
@@ -98,8 +98,8 @@ A2 = A11+A12+A13+A14+A15
 missing_tickers, missing_index = [], []
 
 pvar_list = pd.read_csv('pvarFromTicketBuilder.csv')
-print('printer dataframen')
-print(pvar_list)
+#print('printer dataframen')
+#print(pvar_list)
 #pvar_list = pvar_list.to_numpy().tolist()
 pvar_list = pvar_list['0'].tolist()
 #pvar_list = pvar_list[0]
@@ -107,36 +107,65 @@ print('printer dataframen etter konverteringen')
 print(pvar_list)
 
 tickers_found = pd.read_csv('tickers_foundFromTicketBuilder.csv')
-print('printer dataframen')
-print(tickers_found)
+#print('printer dataframen')
+#print(tickers_found)
 tickers_found = tickers_found['0'].tolist()
 print('printer tickers found')
 print(tickers_found)
+
+tickers_foundFailed = pd.read_csv('FinancialIndicatorsFailedTickers.csv')
+#print('printer dataframen')
+#print(tickers_foundFailed)
+#tickers_foundFailed = tickers_foundFailed['0'].tolist()
+#print('printer tickers found')
+#print(tickers_foundFailed)
+
+#tickers_found2 = [x for x in tickers_found if x not in tickers_foundFailed]
+#pvar_list2 = [x for x in pvar_list if x not in tickers_foundFailed]
+
+print('lengde på pvar:')
+print(len(pvar_list))
+
+print('lengde på tickers:')
+print(len(tickers_found))
+
+
+#for x in tickers_foundFailed:
+    #indexNumber = tickers_found.index(x)
+   # tickers_found.remove(x)
+   # pvar_list.pop(indexNumber)
+    #pvar_list.remove(x)
+
+print('lengde på pvar:')
+print(len(pvar_list))
+
+print('lengde på tickers:')
+print(len(tickers_found))
 
 a_file = open("indicators.txt")
 file_contents = a_file.read()
 indicators = file_contents.splitlines()
 
 d = np.zeros((len(tickers_found), len(indicators)))
-D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2020 PRICE VAR [%]'])
+D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2021 PRICE VAR [%]'])
 
 
 tickerNumber = 0
-for A in A2:
+for A in tqdm(A2):
     #try:
         all_dates = find_in_json(A, 'date')
 
-        tqdm(tickerNumber)
+
 
         t = tickerNumber
 
         tickerNumber = tickerNumber + 1
 
-        pd.DataFrame(pvar_list, index=tickers_found, columns=['2020 PRICE VAR [%]'])
+        pd.DataFrame(pvar_list, index=tickers_found, columns=['2021 PRICE VAR [%]'])
         #testAllFinancialData = pd.DataFrame(A)
         #testAllFinancialData.to_csv('testAllFinancialData.csv')
 
-        check = [s for s in all_dates if '2019' in s]  # find all 2018 entries in dates
+        check = [s for s in all_dates if '2021' in s]  # find all 2018 entries in dates
         if len(check) > 0:
             date_index = all_dates.index(check[0])  # get most recent 2018 entries, if more are present
 

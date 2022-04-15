@@ -17,7 +17,7 @@ def get_price_var(symbol):
     Output: price variation
     '''
     # read data
-    prices = data.DataReader(symbol, 'yahoo', '2020-01-01', '2020-12-31')['Adj Close']
+    prices = data.DataReader(symbol, 'yahoo', '2021-01-01', '2021-12-31')['Adj Close']
 
     # get all timestamps for specific lookups
     today = prices.index[-1]
@@ -70,10 +70,10 @@ for ticker in TICKERS:
 #D = pd.DataFrame(pvar_list, index=tickers_found, columns=['2019 PRICE VAR [%]'])
 
 pvardf = pd.DataFrame(pvar_list)
-pvardf.to_csv('pvarFromTicketBuilder.csv')
+pvardf.to_csv('pvarFromTicketBuilder2.csv')
 
 tickers_founddf = pd.DataFrame(tickers_found)
-tickers_founddf.to_csv('tickers_foundFromTicketBuilder.csv')
+tickers_founddf.to_csv('tickers_foundFromTicketBuilder2.csv')
 
 
 #print('printer ut dfen')

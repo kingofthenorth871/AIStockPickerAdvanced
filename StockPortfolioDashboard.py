@@ -30,6 +30,10 @@ from dash.exceptions import PreventUpdate
 import dash_table
 import plotly.express as px
 import logging, sys
+from datetime import datetime, timedelta
+
+
+import datetime as dt
 
 # simple function to make headers nicer
 def clean_header(df):
@@ -50,7 +54,7 @@ def get(tickers, startdate, enddate):
 
 #def readTransactionSheetAndFilterData(transactionFile):
 
-last_file=glob('datatickers123.xlsx')[-1] #output109 110
+last_file=glob('datatickers123-2.xlsx')[-1] #output109 110
 #last_file=glob('transactionsFinalsTest.xlsx')[-1] #output109 110
 #last_file=glob('transactions_finaldf_2021-05-15_12h19m_repo.xlsx')[-1] #output109 110
 
@@ -96,7 +100,7 @@ def getAllData():
     #start_sp = datetime(2019, 1, 1)
     start_stocks = datetime(2020, 1, 1)          #122
     #           #65
-    end_stocks = today     #65
+    end_stocks = datetime(2021, 1, 1)     #65
     #start_ytd = datetime(ly, 12, 31) + BDay(1)
 
     all_data = get(filt_tickers, start_stocks, end_stocks)   #67, 71, 73, 81
@@ -610,9 +614,105 @@ def render_page_content(pathname):
 #nytt innhold!
 
 
-def get_stock_price_fig(df):
+def get_stock_price_fig(df, v2):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(mode="lines", x=df["Date"], y=df["Close"]))
+    #v2 = v2
+    BuySellOrders = pd.read_excel('datatickers123-2.xlsx')
+
+    BuySellOrders.to_csv("FromXlscToCSV.csv",
+                         index=None,
+                         header=True)
+    BuySellOrders = pd.DataFrame(pd.read_csv("FromXlscToCSV.csv"))
+
+    BuySellOrders = BuySellOrders.loc[BuySellOrders['ticker'] == v2]
+
+    BuyOrders = BuySellOrders.loc[BuySellOrders['type'] == 'Buy']
+    BuyOrdersDate = BuyOrders['date'].values.tolist()
+    buyOrderPrice = BuyOrders['price'].values.tolist()
+
+    sellOrder = BuySellOrders.loc[BuySellOrders['type'] == 'Sell']
+    SellOrdersDate = sellOrder['date'].values.tolist()
+    sellOrderPrice = sellOrder['price'].values.tolist()
+
+    #BuyOrdersDate = [dt.datetime.strptime(date, '"%Y-%m-%d"').date() for date in BuyOrdersDate]
+
+   # dfRelevantDates = (df['Date'] > '2019-01-01') & (df['Date'] < '2020-01-01')
+
+    dfRelevantDates = df[(df['Date'] > '2019-01-01') & (df['Date'] <= '2020-01-01')]
+
+    dfRelevantDates.to_csv("FromXlscToCSV.csv",  ##må fikses in i koden
+                         index=None,
+                         header=True)
+    dfRelevantDates = pd.DataFrame(pd.read_csv("FromXlscToCSV.csv"))
+
+    #(df['birth_date'] > start_date) & (df['birth_date'] <= end_date)
+
+    #column_names = ["date", "price"]
+    #df50dayMovingAverage = pd.DataFrame(columns=column_names)
+    #daysSinceStartTime50 = date - timedelta(days=5)
+
+    dates = []
+    prices = []
+    dates2 = []
+    prices2 = []
+
+    for index, row in dfRelevantDates.iterrows():
+
+        test = row['Date']
+
+        #test = datetime.strptime(test, '%m %d %Y')
+
+        daysSinceStartTime50 = pd.to_datetime(test, dayfirst=True) - timedelta(days=10)
+
+        #date_time_obj = datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+
+        daysSinceStartTime50 = daysSinceStartTime50.strftime("%d-%m-%Y")
+
+
+        fiftyDayMovingAverage = df[(df['Date'] >= daysSinceStartTime50) & (df['Date'] <= test)]
+        fiftyDayMovingAverage = fiftyDayMovingAverage['Close'].mean()
+        dates.append(test)
+        prices.append(fiftyDayMovingAverage)
+        #df50dayMovingAverage['date'] = row['Date']
+        #df50dayMovingAverage['price'] = fiftyDayMovingAverage
+
+    df50dayMovingAverage = pd.DataFrame({"date": dates,
+                              "price": prices})
+
+
+
+    for index, row in dfRelevantDates.iterrows():
+
+        test = row['Date']
+
+        #test = datetime.strptime(test, '%m %d %Y')
+
+        daysSinceStartTime200 = pd.to_datetime(test, dayfirst=True) - timedelta(days=40)
+
+        #date_time_obj = datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+
+        daysSinceStartTime200 = daysSinceStartTime200.strftime("%d-%m-%Y")
+
+
+        twoHoundredDaysMovingAverage = df[(df['Date'] >= daysSinceStartTime200) & (df['Date'] <= test)]
+        twoHoundredDaysMovingAverage = twoHoundredDaysMovingAverage['Close'].mean()
+        dates2.append(test)
+        prices2.append(twoHoundredDaysMovingAverage)
+        #df50dayMovingAverage['date'] = row['Date']
+        #df50dayMovingAverage['price'] = fiftyDayMovingAverage
+
+    df200dayMovingAverage = pd.DataFrame({"date": dates2,
+                              "price": prices2})
+
+
+
+
+    fig.add_trace(go.Scatter(mode="lines", name="daily closing price", x=df["Date"], y=df["Close"]))
+    fig.add_trace(go.Scatter(mode="lines", name="50 day moving average", x=df50dayMovingAverage["date"], y=df50dayMovingAverage["price"]))
+    fig.add_trace(go.Scatter(mode="lines", name="200 day moving average", x=df200dayMovingAverage["date"], y=df200dayMovingAverage["price"]))
+    fig.add_trace(go.Scatter(mode="markers", name="Bought", x=BuyOrdersDate, y=buyOrderPrice))
+    fig.add_trace(go.Scatter(mode="markers", name="Sold", x=SellOrdersDate, y=sellOrderPrice))
+    #fig.add_scatter(x=["2019-03-03", "2019-03-03", "2019-03-03", "2019-04-04", "2019-05-05"], y=[0, 1, 4, 9, 16])
     return fig
 
 
@@ -627,8 +727,8 @@ def get_dounts(df, label):
 #app = dash.Dash(external_stylesheets=[
    # '<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">'])
 
-tickers = pd.read_excel('stockWinnersFromAIStockPicker.xlsx')
-tickers = tickers['tickers'].values.tolist()
+tickers = pd.read_excel('datatickers123-2.xlsx')
+tickers = tickers['ticker'].unique().tolist()
 tickersForOptionsTable = []
 
 for ticker in tickers:
@@ -690,10 +790,14 @@ def stock_prices(v, v2):
     if v2 == None:
         raise PreventUpdate
 
-    df = yf.download(v2)
+    df = yf.download(v2, '2018-01-01',datetime.today())
+
+    #AllPrices = yf.download(ticker, daysSinceStartTime200, now)
+
     df.reset_index(inplace=True)
 
-    fig = get_stock_price_fig(df)
+    fig = get_stock_price_fig(df, v2)
+
 
     return [dcc.Graph(figure=fig)]
 
